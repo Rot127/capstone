@@ -847,22 +847,59 @@ typedef enum arm_reg {
 } arm_reg;
 
 /// The format a memory operand follows
+/// The format names match the encoding names in the ARMv8m ISA manual
+/// (document number: DDI0553B) chapter C2.2 and C2.3.
+///
+/// But not exactly! Due to the flawed encoding definition in LLVM.
+/// Details are documented for each memory operand format.
+///
+/// Name pattern:
+/// | Instruction bit width | instruction type | operand type | additional info |
+/// Example: "16T32_LDST_REGOFF_U" is read as:
+/// | 16-bit T32 instruction | Load/Store | Register offset | U bit is in operand encoding |
 typedef enum arm_mem_format {
-	ARM_MEM_FMT_NONE,
-	ARM_MEM_FMT_U_REG_IMM, ///< U flag, base register, immediate
-	ARM_MEM_FMT_U_REG_REG, ///< U flag, base register, index (or offset) register
-	ARM_MEM_FMT_U_REG_IMM2, ///< U flag, base register, two immediate offsets (that form the full immediate)
-	ARM_MEM_FMT_REG_U_IMM, ///< base register, U flag, immediate offset
-	ARM_MEM_FMT_IMM_REG, ///< immediate offset first then base register
-	ARM_MEM_FMT_REG_IMM, ///< base register, immediate offset
-	ARM_MEM_FMT_IREG_BREG, ///< index register, base register (in this order)
-	ARM_MEM_FMT_REG_ALIGN_REG, ///< base register, alignment, offset register
-	ARM_MEM_FMT_U_REG_SHIFT_REG, ///< U flag, base register, shift value (5 bits) with shift type (2 bits), index register
-	ARM_MEM_FMT_REG_SHIFT_REG, ///< base register, shift, index register
-	ARM_MEM_FMT_REG_REG, ///< base register, index register
-	ARM_MEM_FMT_REG, ///< only base register (no offset)
-	ARM_MEM_FMT_IMM, ///< only immediate offset (implies that the base register is not encoded)
-	ARM_MEM_FMT_INVALID = 0xffff,
+	ARM_OP_ENC_NONE = 0, ///< No encoding pattern set.
+	ARM_OP_ENC_16T32_LDST_REGOFF, ///< Load/store (register offset)
+	ARM_OP_ENC_16T32_LDSTWB_IMMOFF, ///< Load/store word/byte (immediate offset)
+	ARM_OP_ENC_16T32_LDSTH_IMMOFF, ///< Load/store halfword (immediate offset)
+	ARM_OP_ENC_16T32_LDST_SP, ///< Load/store (SP relative)
+	ARM_OP_ENC_16T32_LDST_MUL, ///< Load/store multiple
+	ARM_OP_ENC_32T32_LDST_EXCL, ///< Load/store exclusive
+	ARM_OP_ENC_32T32_LDST_EXCLBHD, ///< Load/store exclusive byte/half/dual
+	ARM_OP_ENC_32T32_LDST_LASR, ///< Load/store load-acquire/store-release
+	ARM_OP_ENC_32T32_LDST_DPOST, ///< Load/store dual (post-indexed)
+	ARM_OP_ENC_32T32_LDST_DLITIMM, ///< Load/store dual (literal and immediate)
+	ARM_OP_ENC_32T32_LDST_DPRESECG, ///< Load/store dual (pre-indexed), secure gateway
+	ARM_OP_ENC_32T32_LDST_SINGLE, ///< Load/store single
+	ARM_OP_ENC_32T32_LDST_REGOFF, ///< Load/store, unsigned (register offset)
+	ARM_OP_ENC_32T32_LDST_UIMMPOST, ///< Load/store, unsigned (immediate, post-indexed)
+	ARM_OP_ENC_32T32_LDST_UNEGIMM, ///< Load/store, unsigned (negative immediate)
+	ARM_OP_ENC_32T32_LDST_UUNPRIV, ///< Load/store, unsigned (unprivileged)
+	ARM_OP_ENC_32T32_LDST_UIMMPRE, ///< Load/store, unsigned (immediate, pre-indexed)
+	ARM_OP_ENC_32T32_LDST_UPOSIMM, ///< Load/store, unsigned (positive immediate)
+	ARM_OP_ENC_32T32_LDST_ULIT, ///< Load, unsigned (literal)
+	ARM_OP_ENC_32T32_LDST_SREGOFF, ///< Load/store, signed (register offset)
+	ARM_OP_ENC_32T32_LDST_SIMMPOST, ///< Load/store, signed (immediate, post-indexed)
+	ARM_OP_ENC_32T32_LDST_SNEGIMM, ///< Load/store, signed (negative immediate)
+	ARM_OP_ENC_32T32_LDST_SUNPRIV, ///< Load/store, signed (unprivileged)
+	ARM_OP_ENC_32T32_LDST_SIMMPRE, ///< Load/store, signed (immediate, pre-indexed)
+	ARM_OP_ENC_32T32_LDST_SPOSIMM, ///< Load/store, signed (positive immediate)
+	ARM_OP_ENC_32T32_LDST_SLIT, ///< Load, signed (literal)
+	// ARM_MEM_FMT_NONE,
+	// ARM_MEM_FMT_U_REG_IMM, ///< U flag, base register, immediate
+	// ARM_MEM_FMT_U_REG_REG, ///< U flag, base register, index (or offset) register
+	// ARM_MEM_FMT_U_REG_IMM2, ///< U flag, base register, two immediate offsets (that form the full immediate)
+	// ARM_MEM_FMT_REG_U_IMM, ///< base register, U flag, immediate offset
+	// ARM_MEM_FMT_IMM_REG, ///< immediate offset first then base register
+	// ARM_MEM_FMT_REG_IMM, ///< base register, immediate offset
+	// ARM_MEM_FMT_IREG_BREG, ///< index register, base register (in this order)
+	// ARM_MEM_FMT_REG_ALIGN_REG, ///< base register, alignment, offset register
+	// ARM_MEM_FMT_U_REG_SHIFT_REG, ///< U flag, base register, shift value (5 bits) with shift type (2 bits), index register
+	// ARM_MEM_FMT_REG_SHIFT_REG, ///< base register, shift, index register
+	// ARM_MEM_FMT_REG_REG, ///< base register, index register
+	// ARM_MEM_FMT_REG, ///< only base register (no offset)
+	// ARM_MEM_FMT_IMM, ///< only immediate offset (implies that the base register is not encoded)
+	// ARM_MEM_FMT_INVALID = 0xffff,
 } arm_mem_format;
 
 inline static const char *ARMMemFormatToString(arm_mem_format format) 
