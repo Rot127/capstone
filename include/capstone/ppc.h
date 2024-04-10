@@ -9,8 +9,8 @@ extern "C" {
 #endif
 
 #include <assert.h>
-#include "cs_operand.h"
-#include "platform.h"
+#include <capstone/cs_operand.h>
+#include <capstone/platform.h>
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4201)

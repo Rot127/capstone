@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#include "platform.h"
+#include <capstone/platform.h>
 
 /// Calculate relative address for X86-64, given cs_insn structure
 #define X86_REL_ADDR(insn) (((insn).detail->x86.operands[0].type == X86_OP_IMM) \

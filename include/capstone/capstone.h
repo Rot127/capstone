@@ -17,8 +17,8 @@ extern "C" {
 #include <stdio.h>
 #endif
 
-#include "cs_operand.h"
-#include "platform.h"
+#include <capstone/cs_operand.h>
+#include <capstone/platform.h>
 
 #ifdef _MSC_VER
 #pragma warning(disable:4201)
@@ -357,26 +357,26 @@ typedef struct cs_opt_skipdata {
 } cs_opt_skipdata;
 
 
-#include "arm.h"
-#include "aarch64.h"
-#include "m68k.h"
-#include "mips.h"
-#include "ppc.h"
-#include "sparc.h"
-#include "systemz.h"
-#include "x86.h"
-#include "xcore.h"
-#include "tms320c64x.h"
-#include "m680x.h"
-#include "evm.h"
-#include "riscv.h"
-#include "wasm.h"
-#include "mos65xx.h"
-#include "bpf.h"
-#include "sh.h"
-#include "tricore.h"
-#include "alpha.h"
-#include "hppa.h"
+#include <capstone/arm.h>
+#include <capstone/aarch64.h>
+#include <capstone/m68k.h>
+#include <capstone/mips.h>
+#include <capstone/ppc.h>
+#include <capstone/sparc.h>
+#include <capstone/systemz.h>
+#include <capstone/x86.h>
+#include <capstone/xcore.h>
+#include <capstone/tms320c64x.h>
+#include <capstone/m680x.h>
+#include <capstone/evm.h>
+#include <capstone/riscv.h>
+#include <capstone/wasm.h>
+#include <capstone/mos65xx.h>
+#include <capstone/bpf.h>
+#include <capstone/sh.h>
+#include <capstone/tricore.h>
+#include <capstone/alpha.h>
+#include <capstone/hppa.h>
 
 #define MAX_IMPL_W_REGS 47
 #define MAX_IMPL_R_REGS 20

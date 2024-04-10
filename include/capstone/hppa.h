@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-#include "cs_operand.h"
-#include "platform.h"
+#include <capstone/cs_operand.h>
+#include <capstone/platform.h>
 
 #define HPPA_MAX_OPS 5
 #define HPPA_STR_MODIFIER_LEN 8

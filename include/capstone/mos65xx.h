@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#include "platform.h"
+#include <capstone/platform.h>
 
 /// MOS65XX registers and special registers
 typedef enum mos65xx_reg {
