@@ -80,6 +80,7 @@ jobs:
       if: startsWith(matrix.config.build-system, 'make')
       run: |
         ./make.sh
+        sudo make install
 
     - name: cmake
       if: startsWith(matrix.config.build-system, 'cmake')
