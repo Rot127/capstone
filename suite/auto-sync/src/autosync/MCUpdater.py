@@ -205,10 +205,13 @@ class TestFile:
     def get_simple_filename(self) -> Path:
         return self.file_path
 
+    def __lt__(self, other) -> bool:
+        return str(self.file_path) < str(other.file_path)
+
 
 class MCUpdater:
     """
-    The MCUpdate parses all test files of the LLVM MC regression tests.
+    The MCUpdater parses all test files of the LLVM MC regression tests.
     Each of those LLVM files can contain several llvm-mc commands to run on the same file.
     Mostly this is done to test the same file with different CPU features enabled.
     So it can test different flavors of assembly etc.
@@ -260,7 +263,7 @@ class MCUpdater:
         test_cnt = 0
         overwritten = 0
         files_written = set()
-        for test in self.test_files:
+        for test in sorted(self.test_files):
             if not test.has_tests():
                 continue
             file_cnt += 1
