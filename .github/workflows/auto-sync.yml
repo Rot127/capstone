@@ -36,6 +36,13 @@ jobs:
         run: |
           python3.11 -m black --check src/autosync
 
+      - name: Install llvm-mc
+        run: |
+          sudo apt install llvm-18
+          llvm-mc-18 --version
+          sudo ln -s $(whereis -b llvm-mc-18 | grep -Eo "/.*") /usr/local/bin/llvm-mc
+          llvm-mc --version
+
       - name: Clone llvm-capstone
         run: |
           git clone https://github.com/capstone-engine/llvm-capstone.git vendor/llvm_root
@@ -49,10 +56,6 @@ jobs:
           cmake --build . --target llvm-tblgen --config Debug
           cd ../../../
 
-      - name: Install llvm-mc
-        run: |
-          sudo apt install llvm-18-dev
-
       - name: Test Header patcher
         run: |
           python -m unittest src/autosync/Tests/test_header_patcher.py
@@ -60,7 +63,8 @@ jobs:
 
       - name: Remove llvm-mc
         run: |
-          sudo apt remove llvm-18-dev
+          sudo apt remove llvm-18
+          sudo rm /usr/local/bin/llvm-mc
 
       - name: Differ - Test save file is up-to-date
         run: |
