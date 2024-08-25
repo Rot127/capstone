@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 import unittest
+import subprocess as sp
 from pathlib import Path
 from threading import Lock
 
@@ -163,7 +164,7 @@ class TestHeaderPatcher(unittest.TestCase):
                 actual = f.read()
             if expected != actual:
                 logging.error("Files mismatch")
-                self.assertEqual(actual, expected)
+                sp.run(["git", "diff", f"{efile}", f"{afile}"], check=True)
                 return False
             logging.debug(f"OK: actual == expected")
         return True
