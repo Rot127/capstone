@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - "suite/auto-sync/**"
+      - ".github/workflows/auto-sync.yml"
   pull_request:
 
 jobs:
@@ -40,6 +41,23 @@ jobs:
           cmake --build . --target llvm-tblgen --config Debug
           cd ../../../
 
+      - name: Install llvm-mc
+        run: |
+          sudo apt install llvm-18-dev
+
+      - name: Test Header patcher
+        run: |
+          python -m unittest src/autosync/Tests/test_header_patcher.py
+          python -m unittest src/autosync/Tests/test_mcupdater.py
+
+      - name: Remove llvm-mc
+        run: |
+          sudo apt remove llvm-18-dev
+
+      - name: Differ - Test save file is up-to-date
+        run: |
+          ./src/autosync/cpptranslator/Differ.py -a AArch64 --check_saved
+
       - name: Test generation of inc files
         run: |
           ./src/autosync/ASUpdater.py -d -a AArch64 -s IncGen
@@ -62,16 +80,3 @@ jobs:
           ./src/autosync/ASUpdater.py --ci -d -a ARM -s Translate
           ./src/autosync/ASUpdater.py --ci -d -a PPC -s Translate
           ./src/autosync/ASUpdater.py --ci -d -a LoongArch -s Translate
-
-      - name: Install llvm-mc
-        run: |
-          sudo apt install llvm-18-dev
-
-      - name: Test Header patcher
-        run: |
-          python -m unittest src/autosync/Tests/test_header_patcher.py
-          python -m unittest src/autosync/Tests/test_mcupdater.py
-
-      - name: Differ - Test save file is up-to-date
-        run: |
-          ./src/autosync/cpptranslator/Differ.py -a AArch64 --check_saved
