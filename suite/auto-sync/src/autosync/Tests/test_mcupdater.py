@@ -6,6 +6,7 @@ import os
 import sys
 import unittest
 from pathlib import Path
+from threading import Lock
 
 from autosync.Helper import get_path, test_only_overwrite_path_var
 from autosync.MCUpdater import MCUpdater
@@ -20,104 +21,117 @@ class TestHeaderPatcher(unittest.TestCase):
             format="%(levelname)-5s - %(message)s",
             force=True,
         )
+        cls.mutex = Lock()
 
     def test_unified_test_cases(self):
-        out_dir = Path(
-            get_path("{MCUPDATER_TEST_OUT_DIR}").joinpath("merged").joinpath("unified")
-        )
-        if not out_dir.exists():
-            out_dir.mkdir(parents=True)
-        for file in out_dir.iterdir():
-            logging.debug(f"Delete old file: {file}")
-            os.remove(file)
-        test_only_overwrite_path_var(
-            "{MCUPDATER_OUT_DIR}",
-            out_dir,
-        )
-        self.updater = MCUpdater("ARCH", get_path("{MCUPDATER_TEST_DIR}"), [], [], True)
-        self.updater.gen_all()
-        self.assertTrue(
-            self.compare_files(out_dir, ["test_a.txt.yaml", "test_b.txt.yaml"])
-        )
+        with self.mutex:
+            out_dir = Path(
+                get_path("{MCUPDATER_TEST_OUT_DIR}")
+                .joinpath("merged")
+                .joinpath("unified")
+            )
+            if not out_dir.exists():
+                out_dir.mkdir(parents=True)
+            for file in out_dir.iterdir():
+                logging.debug(f"Delete old file: {file}")
+                os.remove(file)
+            test_only_overwrite_path_var(
+                "{MCUPDATER_OUT_DIR}",
+                out_dir,
+            )
+            self.updater = MCUpdater(
+                "ARCH", get_path("{MCUPDATER_TEST_DIR}"), [], [], True
+            )
+            self.updater.gen_all()
+            self.assertTrue(
+                self.compare_files(out_dir, ["test_a.txt.yaml", "test_b.txt.yaml"])
+            )
 
     def test_separated_test_cases(self):
-        out_dir = Path(
-            get_path("{MCUPDATER_TEST_OUT_DIR}")
-            .joinpath("merged")
-            .joinpath("separated")
-        )
-        if not out_dir.exists():
-            out_dir.mkdir(parents=True)
-        for file in out_dir.iterdir():
-            logging.debug(f"Delete old file: {file}")
-            os.remove(file)
-        test_only_overwrite_path_var(
-            "{MCUPDATER_OUT_DIR}",
-            out_dir,
-        )
-        self.updater = MCUpdater(
-            "ARCH", get_path("{MCUPDATER_TEST_DIR}"), [], [], False
-        )
-        self.updater.gen_all()
-        self.assertTrue(
-            self.compare_files(out_dir, ["test_a.txt.yaml", "test_b.txt.yaml"])
-        )
+        with self.mutex:
+            out_dir = Path(
+                get_path("{MCUPDATER_TEST_OUT_DIR}")
+                .joinpath("merged")
+                .joinpath("separated")
+            )
+            if not out_dir.exists():
+                out_dir.mkdir(parents=True)
+            for file in out_dir.iterdir():
+                logging.debug(f"Delete old file: {file}")
+                os.remove(file)
+            test_only_overwrite_path_var(
+                "{MCUPDATER_OUT_DIR}",
+                out_dir,
+            )
+            self.updater = MCUpdater(
+                "ARCH", get_path("{MCUPDATER_TEST_DIR}"), [], [], False
+            )
+            self.updater.gen_all()
+            self.assertTrue(
+                self.compare_files(out_dir, ["test_a.txt.yaml", "test_b.txt.yaml"])
+            )
 
     def test_multi_mode_unified_test_cases(self):
-        out_dir = Path(
-            get_path("{MCUPDATER_TEST_OUT_DIR}").joinpath("multi").joinpath("unified")
-        )
-        if not out_dir.exists():
-            out_dir.mkdir(parents=True)
-        for file in out_dir.iterdir():
-            logging.debug(f"Delete old file: {file}")
-            os.remove(file)
-        test_only_overwrite_path_var(
-            "{MCUPDATER_OUT_DIR}",
-            out_dir,
-        )
-        self.updater = MCUpdater(
-            "ARCH", get_path("{MCUPDATER_TEST_DIR}"), [], [], True, multi_mode=True
-        )
-        self.updater.gen_all()
-        self.assertTrue(
-            self.compare_files(
-                out_dir,
-                [
-                    "test_a_aarch64_v8a__fp_armv8.txt.yaml",
-                    "test_a_arm64_v8.2a.txt.yaml",
-                    "test_b_arm64.txt.yaml",
-                ],
+        with self.mutex:
+            out_dir = Path(
+                get_path("{MCUPDATER_TEST_OUT_DIR}")
+                .joinpath("multi")
+                .joinpath("unified")
             )
-        )
+            if not out_dir.exists():
+                out_dir.mkdir(parents=True)
+            for file in out_dir.iterdir():
+                logging.debug(f"Delete old file: {file}")
+                os.remove(file)
+            test_only_overwrite_path_var(
+                "{MCUPDATER_OUT_DIR}",
+                out_dir,
+            )
+            self.updater = MCUpdater(
+                "ARCH", get_path("{MCUPDATER_TEST_DIR}"), [], [], True, multi_mode=True
+            )
+            self.updater.gen_all()
+            self.assertTrue(
+                self.compare_files(
+                    out_dir,
+                    [
+                        "test_a_aarch64_v8a__fp_armv8.txt.yaml",
+                        "test_a_arm64_v8.2a.txt.yaml",
+                        "test_b_arm64.txt.yaml",
+                    ],
+                )
+            )
 
     def test_multi_mode_separated_test_cases(self):
-        out_dir = Path(
-            get_path("{MCUPDATER_TEST_OUT_DIR}").joinpath("multi").joinpath("separated")
-        )
-        if not out_dir.exists():
-            out_dir.mkdir(parents=True)
-        for file in out_dir.iterdir():
-            logging.debug(f"Delete old file: {file}")
-            os.remove(file)
-        test_only_overwrite_path_var(
-            "{MCUPDATER_OUT_DIR}",
-            out_dir,
-        )
-        self.updater = MCUpdater(
-            "ARCH", get_path("{MCUPDATER_TEST_DIR}"), [], [], False, multi_mode=True
-        )
-        self.updater.gen_all()
-        self.assertTrue(
-            self.compare_files(
-                out_dir,
-                [
-                    "test_a_aarch64_v8a__fp_armv8.txt.yaml",
-                    "test_a_arm64_v8.2a.txt.yaml",
-                    "test_b_arm64.txt.yaml",
-                ],
+        with self.mutex:
+            out_dir = Path(
+                get_path("{MCUPDATER_TEST_OUT_DIR}")
+                .joinpath("multi")
+                .joinpath("separated")
             )
-        )
+            if not out_dir.exists():
+                out_dir.mkdir(parents=True)
+            for file in out_dir.iterdir():
+                logging.debug(f"Delete old file: {file}")
+                os.remove(file)
+            test_only_overwrite_path_var(
+                "{MCUPDATER_OUT_DIR}",
+                out_dir,
+            )
+            self.updater = MCUpdater(
+                "ARCH", get_path("{MCUPDATER_TEST_DIR}"), [], [], False, multi_mode=True
+            )
+            self.updater.gen_all()
+            self.assertTrue(
+                self.compare_files(
+                    out_dir,
+                    [
+                        "test_a_aarch64_v8a__fp_armv8.txt.yaml",
+                        "test_a_arm64_v8.2a.txt.yaml",
+                        "test_b_arm64.txt.yaml",
+                    ],
+                )
+            )
 
     def compare_files(self, out_dir: Path, filenames: list[str]) -> bool:
         if not out_dir.is_dir():
@@ -149,6 +163,7 @@ class TestHeaderPatcher(unittest.TestCase):
                 actual = f.read()
             if expected != actual:
                 logging.error("Files mismatch")
+                self.assertEqual(actual, expected)
                 return False
             logging.debug(f"OK: actual == expected")
         return True
