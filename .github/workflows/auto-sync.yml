@@ -65,7 +65,7 @@ jobs:
 
       - name: Install llvm-mc
         run: |
-          sudo apt install llvm-18
+          sudo apt install llvm-18-dev
 
       - name: Test Header patcher
         run: |

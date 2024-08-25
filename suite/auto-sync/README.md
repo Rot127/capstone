@@ -51,7 +51,8 @@ cd ../../
 
 Additionally, we need `llvm-mc` for generating our regression tests.
 You can build it, but it will take a lot of space on your hard drive.
-You can also get the binaries [here](https://releases.llvm.org/download.html) or install it with yur package manager.
+You can also get the binaries [here](https://releases.llvm.org/download.html) or
+install it with your package manager (usually something like `llvm-18-dev`).
 Just ensure it is in your `PATH` as `llvm-mc`.
 
 ## Architecture
