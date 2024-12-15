@@ -67,6 +67,12 @@ static struct {
 		CS_ARCH_PPC, CS_ARCH_MAX }, 0, CS_MODE_PS },
 	{ "+spe", "Enables SPE extension", {
 		CS_ARCH_PPC, CS_ARCH_MAX }, 0, CS_MODE_SPE },
+	{ "+dense", "Has 2-3byte instructions", {
+		CS_ARCH_XTENSA, CS_ARCH_MAX }, 0, CS_MODE_XTENSA_HASDENSITY },
+	{ "+hifi3", "Enables HIFI3 extension.", {
+		CS_ARCH_XTENSA, CS_ARCH_MAX }, 0, CS_MODE_XTENSA_HASHIFI3 },
+	{ "+esp3s3", "Enables ESP32 s3 operands.", {
+		CS_ARCH_XTENSA, CS_ARCH_MAX }, 0, CS_MODE_XTENSA_HASESP32S3OPS },
 	{ NULL }
 };
 

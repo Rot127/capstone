@@ -233,6 +233,9 @@ typedef enum cs_mode {
 	CS_MODE_XTENSA_ESP32 = 1 << 1,	 ///< Xtensa ESP32
 	CS_MODE_XTENSA_ESP32S2 = 1 << 2, ///< Xtensa ESP32S2
 	CS_MODE_XTENSA_ESP8266 = 1 << 3, ///< Xtensa ESP328266
+	CS_MODE_XTENSA_HASDENSITY = 1 << 4,
+	CS_MODE_XTENSA_HASESP32S3OPS = 1 << 5,
+	CS_MODE_XTENSA_HASHIFI3 = 1 << 6,
 } cs_mode;
 
 typedef void* (CAPSTONE_API *cs_malloc_t)(size_t size);

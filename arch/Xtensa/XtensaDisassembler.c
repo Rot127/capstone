@@ -26,6 +26,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "capstone/capstone.h"
+#include "capstone/xtensa.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -235,6 +237,13 @@ static DecodeStatus DecodeMR23RegisterClass(MCInst *Inst, uint64_t RegNo,
 
 bool Xtensa_getFeatureBits(unsigned int mode, unsigned int feature)
 {
+	if (feature == XTENSA_FEATURE_HASDENSITY) {
+		return mode & CS_MODE_XTENSA_HASDENSITY;
+	} else if (feature == XTENSA_FEATURE_HASHIFI3) {
+		return mode & CS_MODE_XTENSA_HASHIFI3;
+	} else if (feature == XTENSA_FEATURE_HASESP32S3OPS) {
+		return mode & CS_MODE_XTENSA_HASESP32S3OPS;
+	}
 	// we support everything
 	return true;
 }
@@ -990,17 +999,17 @@ DecodeToMCInst(decodeToMCInst_6, fieldFromInstruction_6, uint64_t);
 DecodeInstruction(decodeInstruction_6, fieldFromInstruction_6, decodeToMCInst_6,
 		  uint64_t);
 
-static bool hasDensity()
+static bool hasDensity(const MCInst *MI)
 {
-	return true;
+	return Xtensa_getFeatureBits(MI->csh->mode, XTENSA_FEATURE_HASDENSITY);
 }
-static bool hasESP32S3Ops()
+static bool hasESP32S3Ops(const MCInst *MI)
 {
-	return true;
+	return Xtensa_getFeatureBits(MI->csh->mode, XTENSA_FEATURE_HASESP32S3OPS);
 }
-static bool hasHIFI3()
+static bool hasHIFI3(const MCInst *MI)
 {
-	return true;
+	return Xtensa_getFeatureBits(MI->csh->mode, XTENSA_FEATURE_HASHIFI3);
 }
 
 static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
@@ -1008,10 +1017,11 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 				   uint64_t Address)
 {
 	uint64_t Insn;
-	DecodeStatus Result;
+	DecodeStatus Result = MCDisassembler_Fail;
+	*Size = 0;
 
 	// Parse 16-bit instructions
-	if (hasDensity()) {
+	if (hasDensity(MI)) {
 		Result = readInstruction16(MI, Bytes, BytesLen, Address, Size,
 					   &Insn);
 		if (Result == MCDisassembler_Fail)
@@ -1021,6 +1031,9 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 					     NULL);
 		if (Result != MCDisassembler_Fail) {
 			*Size = 2;
+			if (MCInst_getOpcode(MI) == Xtensa_ILL) {
+				return MCDisassembler_Fail;
+			}
 			return Result;
 		}
 	}
@@ -1034,10 +1047,13 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 	Result = decodeInstruction_3(DecoderTable24, MI, Insn, Address, NULL);
 	if (Result != MCDisassembler_Fail) {
 		*Size = 3;
+		if (MCInst_getOpcode(MI) == Xtensa_ILL) {
+			return MCDisassembler_Fail;
+		}
 		return Result;
 	}
 
-	if (hasESP32S3Ops()) {
+	if (hasESP32S3Ops(MI)) {
 		// Parse ESP32S3 24-bit instructions
 		Result = readInstruction24(MI, Bytes, BytesLen, Address, Size,
 					   &Insn, true);
@@ -1046,6 +1062,9 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 						     Insn, Address, NULL);
 			if (Result != MCDisassembler_Fail) {
 				*Size = 3;
+				if (MCInst_getOpcode(MI) == Xtensa_ILL) {
+					return MCDisassembler_Fail;
+				}
 				return Result;
 			}
 		}
@@ -1060,15 +1079,23 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 					     Address, NULL);
 		if (Result != MCDisassembler_Fail) {
 			*Size = 4;
+			if (MCInst_getOpcode(MI) == Xtensa_ILL) {
+				return MCDisassembler_Fail;
+			}
 			return Result;
 		}
 	}
 
-	if (hasHIFI3()) {
+	if (hasHIFI3(MI)) {
 		Result = decodeInstruction_3(DecoderTableHIFI324, MI, Insn,
 					     Address, NULL);
-		if (Result != MCDisassembler_Fail)
+		if (Result != MCDisassembler_Fail) {
+			*Size = 3;
+			if (MCInst_getOpcode(MI) == Xtensa_ILL) {
+				return MCDisassembler_Fail;
+			}
 			return Result;
+		}
 
 		Result = readInstructionN(Bytes, BytesLen, Address, 48, Size,
 					  &Insn);
@@ -1077,8 +1104,13 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 
 		Result = decodeInstruction_6(DecoderTableHIFI348, MI, Insn,
 					     Address, NULL);
-		if (Result != MCDisassembler_Fail)
+		if (Result != MCDisassembler_Fail) {
+			*Size = 6;
+			if (MCInst_getOpcode(MI) == Xtensa_ILL) {
+				return MCDisassembler_Fail;
+			}
 			return Result;
+		}
 	}
 	return Result;
 }
