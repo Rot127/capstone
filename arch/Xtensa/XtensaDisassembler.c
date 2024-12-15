@@ -901,8 +901,7 @@ static DecodeStatus decodeMem32nOperand(MCInst *Inst, uint64_t Imm,
 /// according to the given endianness.
 static DecodeStatus readInstruction16(MCInst *MI, const uint8_t *Bytes,
 				      size_t BytesLen, uint64_t Address,
-				      uint64_t *Size, uint64_t *Insn,
-				      bool IsLittleEndian)
+				      uint64_t *Size, uint64_t *Insn)
 {
 	// We want to read exactly 2 Bytes of data.
 	if (BytesLen < 2) {
@@ -920,7 +919,7 @@ static DecodeStatus readInstruction16(MCInst *MI, const uint8_t *Bytes,
 static DecodeStatus readInstruction24(MCInst *MI, const uint8_t *Bytes,
 				      size_t BytesLen, uint64_t Address,
 				      uint64_t *Size, uint64_t *Insn,
-				      bool IsLittleEndian, bool CheckTIE)
+				      bool CheckTIE)
 {
 	// We want to read exactly 3 Bytes of data.
 	if (BytesLen < 3) {
@@ -939,8 +938,7 @@ static DecodeStatus readInstruction24(MCInst *MI, const uint8_t *Bytes,
 /// Read three bytes from the ArrayRef and return 32 bit data
 static DecodeStatus readInstruction32(MCInst *MI, const uint8_t *Bytes,
 				      size_t BytesLen, uint64_t Address,
-				      uint64_t *Size, uint64_t *Insn,
-				      bool IsLittleEndian)
+				      uint64_t *Size, uint64_t *Insn)
 {
 	// We want to read exactly 4 Bytes of data.
 	if (BytesLen < 4) {
@@ -959,8 +957,7 @@ static DecodeStatus readInstruction32(MCInst *MI, const uint8_t *Bytes,
 /// Read InstSize bytes from the ArrayRef and return 24 bit data
 static DecodeStatus readInstructionN(const uint8_t *Bytes, size_t BytesLen,
 				     uint64_t Address, unsigned InstSize,
-				     uint64_t *Size, uint64_t *Insn,
-				     bool IsLittleEndian)
+				     uint64_t *Size, uint64_t *Insn)
 {
 	// We want to read exactly 3 Bytes of data.
 	if (BytesLen < InstSize) {
@@ -1012,12 +1009,11 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 {
 	uint64_t Insn;
 	DecodeStatus Result;
-	bool IsLittleEndian = MI->csh->mode & CS_MODE_LITTLE_ENDIAN;
 
 	// Parse 16-bit instructions
 	if (hasDensity()) {
 		Result = readInstruction16(MI, Bytes, BytesLen, Address, Size,
-					   &Insn, IsLittleEndian);
+					   &Insn);
 		if (Result == MCDisassembler_Fail)
 			return MCDisassembler_Fail;
 
@@ -1031,7 +1027,7 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 
 	// Parse Core 24-bit instructions
 	Result = readInstruction24(MI, Bytes, BytesLen, Address, Size, &Insn,
-				   IsLittleEndian, false);
+				   false);
 	if (Result == MCDisassembler_Fail)
 		return MCDisassembler_Fail;
 
@@ -1044,7 +1040,7 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 	if (hasESP32S3Ops()) {
 		// Parse ESP32S3 24-bit instructions
 		Result = readInstruction24(MI, Bytes, BytesLen, Address, Size,
-					   &Insn, IsLittleEndian, true);
+					   &Insn, true);
 		if (Result != MCDisassembler_Fail) {
 			Result = decodeInstruction_3(DecoderTableESP32S324, MI,
 						     Insn, Address, NULL);
@@ -1056,7 +1052,7 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 
 		// Parse ESP32S3 32-bit instructions
 		Result = readInstruction32(MI, Bytes, BytesLen, Address, Size,
-					   &Insn, IsLittleEndian);
+					   &Insn);
 		if (Result == MCDisassembler_Fail)
 			return MCDisassembler_Fail;
 
@@ -1075,7 +1071,7 @@ static DecodeStatus getInstruction(MCInst *MI, uint64_t *Size,
 			return Result;
 
 		Result = readInstructionN(Bytes, BytesLen, Address, 48, Size,
-					  &Insn, IsLittleEndian);
+					  &Insn);
 		if (Result == MCDisassembler_Fail)
 			return MCDisassembler_Fail;
 
