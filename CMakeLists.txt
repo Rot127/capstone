@@ -27,6 +27,9 @@ endif()
 # Extract the major, minor, and patch versions
 string(REGEX MATCH "^[0-9]+\\.[0-9]+\\.[0-9]+" PROJECT_VERSION_BASE ${PROJECT_VERSION})
 
+# Use PROJECT_VERSION directly for CPack
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+
 # Set the project version without the pre-release identifier
 project(capstone VERSION ${PROJECT_VERSION_BASE})
 
@@ -959,3 +962,7 @@ if(CAPSTONE_BUILD_CSTEST)
     set(TESTS_UNIT_DIR ${PROJECT_SOURCE_DIR}/tests/unit)
     add_subdirectory(${TESTS_UNIT_DIR})
 endif()
+
+# Include CPack
+set(CPACK_PROJECT_CONFIG_FILE "${CMAKE_SOURCE_DIR}/CPackConfig.cmake")
+include(CPackConfig.txt)
