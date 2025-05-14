@@ -22,7 +22,6 @@ on:
       - "ChangeLog"
       - "README.md"
       - "docs/**"
-  pull_request:
 
 # Automatically cancel any previous running workflow on new push
 concurrency:

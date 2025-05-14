@@ -4,7 +4,6 @@ on:
     paths:
     - '**.c'
     - '**.h'
-  pull_request:
 
 # Stop previous runs on the same branch on new push
 concurrency:

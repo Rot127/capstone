@@ -15,7 +15,6 @@ on:
       - "RELEASE_NOTES"
       - "SPONSORS.TXT"
       - "TODO"
-  pull_request:
 
 # Stop previous runs on the same branch on new push
 concurrency:
