@@ -20,6 +20,10 @@ Note:
 - `PrinterCapstone` is the class defined in `llvm-capstone/llvm/utils/TabelGen/PrinterCapstone.cpp`
 - Always attempt to make the translated C file behave as closely as possible to the original C++ file! This greatly helps debugging and assures that Capstone behaves almost exactly the same as original LLVM.
 
+
+> ⚠️
+> Refactoring an architecture to Auto-Sync is only possible on Linux, running on Windows is desirable but not a priority at the moment
+
 - ### Prepare
   - Read `CONTRIBUTING.md`
   - Read `docs/ARCHITECTURE.md`
@@ -33,7 +37,7 @@ Note:
 	- Clone and build `llvm-tblgen` (see docs)
   - Quickly check options of the updater `ASUpdater -h`
 	- Add Arch name in `Target.py`
-	- In [llvm-capstone](https://github.com/capstone-engine/llvm-capstone) handle arch in `PrinterCapstone.cpp::decoderEmitterEmitDecodeInstruction()` (add decoder function)
+	- In [llvm-capstone](https://github.com/capstone-engine/llvm-capstone) handle arch in `PrinterCapstone.cpp::decoderEmitterEmitDecodeInstruction()` (add decoder function), rebuild for the changes to take effect
 	  [!NOTE] Architecture specific code generation.
 		There are several oddities of architectures which require slightly different generated code.
 		If you search through `PrinterCapstone.cpp` for architecture names like `AArch64`, `ARM`, or `Sparc` you can see how these are handled.
@@ -42,8 +46,8 @@ Note:
 	- Check if `inc` files in `build` look good.
 - ### Translation and Patching
 	- Check for template functions in `<ARCH>InstPrinter.cpp` and `<ARCH>Disassember.cpp`
-	- Copy new config in `arch_conf.json` (LoongArch for a minimal example).
-		- Don't forget to add `ARCHIntPrinter.cpp` to the list of the `AddCSDetail` tests!
+	- Copy new config in `arch_config.json` (LoongArch for a minimal example).
+		- Don't forget to add `ARCHIntPrinter.cpp` to the list of the `AddCSDetail` tests defined earlier in the json file!
 	- Add as a minimum the `<ARCH>InstPrinter.cpp`, `<ARCH>InstPrinter.h` and `<ARCH>Disassembler.cpp` to the translation list.
 		- Tip: The variables use in there are defined in `path_vars.json`
 	- Add architecture specific includes in `Patches/Includes.py`. Copy the code from another architecture for the beginning.

@@ -15,6 +15,9 @@ Please refer to [intro.md](intro.md) for an introduction about this tool.
 
 ## Install
 
+> ⚠️
+> Auto-Sync only runs on Linux, running on Windows is desirable but not a priority at the moment
+
 #### Setup Python environment and Tree-sitter
 
 ```
@@ -36,6 +39,7 @@ pip install -e .
 #### Clone Capstones LLVM fork and build `llvm-tblgen`
 
 ```bash
+cd <capstone-root>/suite/auto-sync/
 git clone https://github.com/capstone-engine/llvm-capstone vendor/llvm_root/
 cd vendor/llvm_root/llvm-capstone
 git checkout auto-sync
@@ -44,7 +48,7 @@ cd build
 # You can also build the "Release" version
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug ../llvm
 cmake --build . --target llvm-tblgen --config Debug
-cd <capstone-root>/suite/auto-sync/
+cd ..
 ```
 
 #### Install `llvm-mc` and `FileCheck`
@@ -55,6 +59,7 @@ You can also get the binaries [here](https://releases.llvm.org/download.html) or
 install it with your package manager (usually something like `llvm-18-dev`).
 Just ensure it is in your `PATH` as `llvm-mc` and `FileCheck` (not as `llvm-mc-18` or similar though!).
 
+`llvm-symbolizer` is also a useful tool to display human-readable stacktraces when LLVM crashes with a stacktrace, optionally make sure you have it on `PATH` or run the crashing command prefixed with `LLVM_SYMBOLIZER_PATH=<path-to-llvm-symbolizer-binary>`
 ## Architecture
 
 Please read [ARCHITECTURE.md](https://github.com/capstone-engine/capstone/blob/next/docs/ARCHITECTURE.md) to understand how `Auto-Sync` works.
