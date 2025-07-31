@@ -407,7 +407,7 @@ class MCUpdater:
             try:
                 slink.symlink_to(p, target_is_directory=True)
             except FileExistsError as e:
-                print("Failed: Link existed. Please delete it")
+                print("Failed: Link existed. Please unlink it and run again.\n")
                 raise e
 
         log.info(f"Run lit: {' '.join(args)}")
