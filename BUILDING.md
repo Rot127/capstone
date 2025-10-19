@@ -98,7 +98,7 @@ We have some example configurations for cross builds in [cross_configs](cross_co
 Build them with the following command (static build is of course optional):
 
 ```bash
-cmake -DCMAKE_TOOLCHAIN_FILE=cross_configs/<cross_build_config>.cmake -DCAPSTONE_BUILD_STATIC_LIBS -S . -B build
+cmake -DCMAKE_TOOLCHAIN_FILE=cross_configs/<cross_build_config>.cmake -DCAPSTONE_BUILD_STATIC_LIBS=ON -S . -B build
 cmake --build build
 ```
 
