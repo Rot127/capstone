@@ -30,20 +30,6 @@ cmake.exe --build build --config Release # For debug build change "Release" to "
 cmake.exe --install build
 ```
 
-**Cross-compiling for Android**
-```bash
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=$NDK_PATH/build/cmake/android.toolchain.cmake -DANDROID_NDK=$NDK_PATH -DANDROID_ABI=arm64-v8a
-cmake --build build
-```
-
-**Cross-compiling static library for arm64**
-
-```bash
-# apt-get install gcc-aarch64-linux-gnu
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_EXE_LINKER_FLAGS=-static
-cmake --build build
-```
-
 ## Tailor Capstone to your needs.
 
 Enable and disable options in the "configure" step (first `cmake` command from above).
@@ -119,9 +105,22 @@ cmake --build build
 See the cmake cross compilation [documentation](https://cmake.org/cmake/help/book/mastering-cmake/chapter/Cross%20Compiling%20With%20CMake.html)
 for more details.
 
+**Android**
+
+The [Android SDK provides](https://developer.android.com/ndk/guides/cmake) a toolchain file for CMake.
+It is the most reliable way to build Capstone for Android.
+
+_Example:_
+
+```bash
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=$NDK_PATH/build/cmake/android.toolchain.cmake -DANDROID_NDK=$NDK_PATH -DANDROID_ABI=arm64-v8a
+cmake --build build
+```
+
 #### Test cross build with QEMU
 
-Running the binaries with QEMU (here an example for s390x) is usually done with a command like this:
+Running the binaries with QEMU (here an example for s390x on Fedora 40)
+is usually done with a command like this:
 
 ```bash
 QEMU_LD_PREFIX=/usr/s390x-redhat-linux/sys-root/fc40/usr/ qemu-s390x-static ./build/cstool -d aarch64 01421bd501423bd5
