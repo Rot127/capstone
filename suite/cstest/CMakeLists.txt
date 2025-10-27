@@ -8,90 +8,126 @@ endif()
 include(ExternalProject)
 set(CMOCKA_LIB_FILE "${CMAKE_CURRENT_BINARY_DIR}/extern/src/cmocka_ext-build/src/libcmocka.a")
 
+# CMocka is the unit testing library we use.
 ExternalProject_Add(cmocka_ext
     PREFIX extern
     URL "https://cmocka.org/files/1.1/cmocka-1.1.7.tar.xz"
     URL_HASH SHA256=810570eb0b8d64804331f82b29ff47c790ce9cd6b163e98d47a4807047ecad82
-    CONFIGURE_COMMAND cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../cmocka_ext/
-    BUILD_COMMAND cmake --build . --config Release
+    CMAKE_ARGS
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
     BUILD_BYPRODUCTS "${CMOCKA_LIB_FILE}"
     INSTALL_COMMAND ""
 )
+set(CMOCKA_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern/src/cmocka_ext/include)
+add_library(cmocka STATIC IMPORTED)
+set_target_properties(cmocka PROPERTIES IMPORTED_LOCATION "${CMOCKA_LIB_FILE}")
 
-set(use_built_libyaml false)
+# libyaml is used to parse the test files.
+# Normally it can be installed via the package managers,
+# but Windows and cross-compile targets might not have it.
+# So it builds it optionally as well.
+set(USE_BUILT_LIBYAML false)
 find_library(libyaml NAMES libyaml yaml)
-
 if (NOT libyaml)
     # Build libyaml
-    set(use_built_libyaml true)
+    set(USE_BUILT_LIBYAML true)
     message("System libyaml: NO - Building it.")
-    set(LIBYAML_LIB_FILE "${CMAKE_CURRENT_BINARY_DIR}/extern/src/libyaml_ext/src/.libs/libyaml.a")
+    set(LIBYAML_LIB_FILE "${CMAKE_CURRENT_BINARY_DIR}/extern/src/libyaml_ext-build/libyaml.a")
+    set(LIBYAML_LIBRARY_DIRS "${CMAKE_CURRENT_BINARY_DIR}/extern/src/libyaml_ext-build/")
+    set(LIBYAML_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/extern/src/libyaml_ext/include")
     ExternalProject_Add(libyaml_ext
         PREFIX extern
         URL "https://github.com/yaml/libyaml/archive/refs/tags/0.2.5.tar.gz"
         URL_HASH SHA256=fa240dbf262be053f3898006d502d514936c818e422afdcf33921c63bed9bf2e
-        CMAKE_ARGS -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_TESTING=OFF
+        # URL "https://github.com/yaml/libyaml/archive/refs/tags/0.1.7.tar.gz"
+        # URL_HASH SHA256=e1884d0fa1eec8cf869ac6bebbf25391e81956aa2970267f974a9fa5e0b968e2
+        CMAKE_ARGS
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+            -DBUILD_TESTING=OFF
+            -DBUILD_SHARED_LIBS=OFF
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
         BUILD_BYPRODUCTS "${LIBYAML_LIB_FILE}"
-        BUILD_IN_SOURCE true
         INSTALL_COMMAND ""
     )
-    set(LIBYAML_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern/src/libyaml_ext/include)
     add_library(libyaml_built STATIC IMPORTED)
     set_target_properties(libyaml_built PROPERTIES IMPORTED_LOCATION "${LIBYAML_LIB_FILE}")
+    set_target_properties(libyaml_built PROPERTIES INCLUDE_DIRECTORIES "${LIBYAML_INCLUDE_DIRS}")
+    set_target_properties(libyaml_built PROPERTIES LIBRARY_DIRECTORIES "${LIBYAML_LIB_DIR}")
 else()
     message("System libyaml: YES")
 endif()
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    set(LIBCYAML_VARIANT "debug")
-else()
-    set(LIBCYAML_VARIANT "release")
-endif()
+# Libcyaml is a wrapper library around libyaml.
+# It parses the yaml files so we don't have to.
+# Sadly it has no CMakeLists.txt. So we patch it into.
+set(LIBCYAML_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/extern/src/libcyaml_ext/include")
 
-set(LIBCYAML_LIB_FILE "${CMAKE_CURRENT_BINARY_DIR}/extern/src/libcyaml_ext/build/${LIBCYAML_VARIANT}/libcyaml.a")
+set(LIBCYAML_LIB_FILE "${CMAKE_CURRENT_BINARY_DIR}/extern/src/libcyaml_ext-build/lib/libcyaml_static.a")
+set(LIBCYAML_LIBRARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/extern/src/libcyaml_ext-build/lib/")
+set(LIBCYAML_SRC_DIR "${CMAKE_CURRENT_BINARY_DIR}/extern/src/libcyaml_ext/")
 ExternalProject_Add(libcyaml_ext
     PREFIX extern
     URL "https://github.com/tlsa/libcyaml/archive/refs/tags/v1.4.2.tar.gz"
     URL_HASH SHA256=3211b2a0589ebfe02c563c96adce9246c0787be2af30353becbbd362998d16dc
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND make VARIANT=${LIBCYAML_VARIANT} PKG_CONFIG=pkg-config
+    PATCH_COMMAND cmake -E copy_if_different ${EXTERNAL_PROJ_PATCH_DIR}/libcyaml/CMakeLists.txt ${LIBCYAML_SRC_DIR}
+    CMAKE_ARGS
+        -DUSE_BUILT_LIBYAML=${USE_BUILT_LIBYAML}
+        -DLIBYAML_INCLUDE_DIRS=${LIBYAML_INCLUDE_DIRS}
+        -DLIBYAML_LIBRARY_DIRS=${LIBYAML_LIBRARY_DIRS}
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
     BUILD_BYPRODUCTS "${LIBCYAML_LIB_FILE}"
-    BUILD_IN_SOURCE true
     INSTALL_COMMAND ""
 )
-set(CMOCKA_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern/src/cmocka_ext/include)
-set(LIBCYAML_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern/src/libcyaml_ext/include)
-add_library(cmocka STATIC IMPORTED)
-add_library(libcyaml STATIC IMPORTED)
-set_target_properties(cmocka PROPERTIES IMPORTED_LOCATION "${CMOCKA_LIB_FILE}")
-set_target_properties(libcyaml PROPERTIES IMPORTED_LOCATION "${LIBCYAML_LIB_FILE}")
 
+add_library(libcyaml STATIC IMPORTED)
+set_target_properties(libcyaml PROPERTIES IMPORTED_LOCATION "${LIBCYAML_LIB_FILE}")
+set_target_properties(libcyaml PROPERTIES INCLUDE_DIRECTORIES "${LIBCYAML_INCLUDE_DIR}")
+set_target_properties(libcyaml PROPERTIES LIBRARY_DIRECTORIES "${LIBCYAML_LIBRARY_DIR}")
+if (USE_BUILT_LIBYAML)
+    add_dependencies(libcyaml libyaml_ext)
+    add_dependencies(libcyaml libyaml_built)
+    target_link_libraries(libcyaml INTERFACE libyaml_built)
+else()
+    add_dependencies(libcyaml ${libyaml})
+    target_link_libraries(libcyaml INTERFACE ${libyaml})
+endif()
+
+# The final cstest binary and library.
 set(CSTEST_INCLUDE_DIR ${CSTEST_DIR}/include)
 file(GLOB CSTEST_SRC ${CSTEST_DIR}/src/*.c)
 add_executable(cstest ${CSTEST_SRC})
 add_library(libcstest STATIC ${CSTEST_SRC})
+
 add_dependencies(cstest cmocka_ext)
 add_dependencies(cstest libcyaml_ext)
-if (use_built_libyaml)
-    target_link_libraries(cstest PUBLIC capstone cmocka libcyaml ${libyaml_built})
-    target_link_libraries(libcstest PUBLIC capstone cmocka libcyaml ${libyaml_built})
+add_dependencies(libcstest cmocka_ext)
+add_dependencies(libcstest libcyaml_ext)
+
+if (USE_BUILT_LIBYAML)
+    target_link_libraries(cstest PUBLIC capstone cmocka libcyaml libyaml_built)
+    target_link_libraries(libcstest PUBLIC capstone cmocka libcyaml libyaml_built)
 else()
     target_link_libraries(cstest PUBLIC capstone cmocka libcyaml ${libyaml})
     target_link_libraries(libcstest PUBLIC capstone cmocka libcyaml ${libyaml})
 endif()
+
 target_include_directories(cstest PRIVATE
         ${PROJECT_SOURCE_DIR}/include>
         ${CSTEST_INCLUDE_DIR}
         ${CMOCKA_INCLUDE_DIR}
         ${LIBCYAML_INCLUDE_DIR}
-        ${LIBYAML_INCLUDE_DIR}
+        ${LIBYAML_INCLUDE_DIRS}
         )
 target_include_directories(libcstest PRIVATE
         ${PROJECT_SOURCE_DIR}/include>
         ${CSTEST_INCLUDE_DIR}
         ${CMOCKA_INCLUDE_DIR}
         ${LIBCYAML_INCLUDE_DIR}
-        ${LIBYAML_INCLUDE_DIR}
+        ${LIBYAML_INCLUDE_DIRS}
         )
 
 # Unit tests for cstest

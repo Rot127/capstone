@@ -1,0 +1,107 @@
+name: Cross Build Tests
+on:
+  push:
+    paths-ignore:
+      - ".gitignore"
+      - "docs/**"
+      - "ChangeLog"
+      - "CREDITS.TXT"
+      - "COMPILE_MAKE.TXT"
+      - "BUILDING.md"
+      - "CONTRIBUTING.md"
+      - "LICENSE.TXT"
+      - "LICENSE_LLVM.TXT"
+      - "README.md"
+      - "RELEASE_NOTES"
+      - "SPONSORS.TXT"
+      - "TODO"
+  pull_request:
+
+# Stop previous runs on the same branch on new push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  UBSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:print_summary=1:print_stacktrace=1"
+  ASAN_OPTIONS: "halt_on_error=1:abort_on_error=1:print_summary=1:print_stacktrace=1"
+  LSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:print_summary=1:print_stacktrace=1"
+
+jobs:
+  Linux:
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {
+              name: 'QEMU Linux s390x',
+              os: ubuntu-24.04,
+              arch: x64,
+              build-system: 'cmake',
+              diet-build: 'OFF',
+              build_type: 'Debug',
+              diet_build: false,
+              packages: 'gcc-s390x-linux-gnu g++-s390x-linux-gnu binutils-s390x-linux-gnu libc6-dev-s390x-cross qemu-user-static',
+              cross_file: 'cross_configs/linux_s390x_ubuntu24.cmake',
+            }
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.config.python-version }}
+
+    - name: Install cross build dependencies
+      env:
+        packages: ${{ matrix.config.packages }}
+      run: |
+        sudo apt-get install -y ${packages}
+
+    - name: cmake (cross build)
+      env:
+        build_option: ${{ matrix.config.build_option }}
+        build_type: ${{ matrix.config.build_type }}
+        cross_file: ${{ matrix.config.cross_file }}
+      run: |
+        cmake -DCMAKE_BUILD_TYPE=${build_type} \
+          -DCAPSTONE_BUILD_STATIC_LIBS=ON \
+          -S . \
+          -DCAPSTONE_BUILD_CSTEST=ON \
+          -DCAPSTONE_BUILD_DIET=${diet_build} \
+          -DCMAKE_TOOLCHAIN_FILE=${cross_file} \
+          ${build_option} \
+          -B build .
+        cmake --build build --config ${build_type}
+
+    - name: unit tests
+      run: |
+        ctest --test-dir build --output-on-failure -R unit_*
+
+    - name: "Integration tests"
+      run: |
+        ctest --test-dir build --output-on-failure -R integration_c_*
+
+    - name: cstest MC
+      run: |
+        ctest --test-dir build --output-on-failure -R MCTests
+
+    - name: cstest details
+      run: |
+        ctest --test-dir build --output-on-failure -R DetailTests
+
+    - name: cstest issues
+      run: |
+        ctest --test-dir build --output-on-failure -R IssueTests
+
+    - name: cstest features
+      run: |
+        ctest --test-dir build --output-on-failure -R FeaturesTests
+
+    - name: Legacy integration tests
+      run: |
+        ctest --test-dir build --output-on-failure -R legacy*

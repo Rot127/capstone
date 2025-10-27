@@ -140,8 +140,9 @@ QEMU_LD_PREFIX=/usr/s390x-redhat-linux/sys-root/fc40/usr/ qemu-s390x-static ./bu
 `cstest` is build together with Capstone by adding the flag `-DCAPSTONE_BUILD_CSTEST`.
 
 The build requires `libyaml`. It is a fairly common package and should be provided by your package manager.
+If not present it will attempt to build it from source.
 
-_Note:_ Currently `cstest` us only supported on Linux.
+_Note:_ Currently `cstest` is only tested on Linux.
 
 If you run another operation system, please install `cstest_py`.
 See `bindings/python/BUILDING.md` for instructions.
