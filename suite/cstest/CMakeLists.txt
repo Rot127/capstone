@@ -136,20 +136,20 @@ set(CSTEST_TEST_DIR ${CSTEST_DIR}/test/)
 add_subdirectory(${CSTEST_TEST_DIR})
 
 # Test targets
-add_test(MCTests
-    cstest ${PROJECT_SOURCE_DIR}/tests/MC
+add_test(NAME MCTests
+    COMMAND cstest ${PROJECT_SOURCE_DIR}/tests/MC
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
-add_test(DetailTests
-    cstest ${PROJECT_SOURCE_DIR}/tests/details
+add_test(NAME DetailTests
+    COMMAND cstest ${PROJECT_SOURCE_DIR}/tests/details
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
-add_test(IssueTests
-    cstest ${PROJECT_SOURCE_DIR}/tests/issues
+add_test(NAME IssueTests
+    COMMAND cstest ${PROJECT_SOURCE_DIR}/tests/issues
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
-add_test(FeaturesTests
-    cstest ${PROJECT_SOURCE_DIR}/tests/features
+add_test(NAME FeaturesTests
+    COMMAND cstest ${PROJECT_SOURCE_DIR}/tests/features
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 
