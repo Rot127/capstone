@@ -101,6 +101,7 @@ set(CSTEST_INCLUDE_DIR ${CSTEST_DIR}/include)
 file(GLOB CSTEST_SRC ${CSTEST_DIR}/src/*.c)
 add_executable(cstest ${CSTEST_SRC})
 add_library(libcstest STATIC ${CSTEST_SRC})
+set_property(TARGET libcstest PROPERTY OUTPUT_NAME cstest)
 
 add_dependencies(cstest cmocka_ext)
 add_dependencies(cstest libcyaml_ext)
