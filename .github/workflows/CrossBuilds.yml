@@ -69,6 +69,21 @@ jobs:
               packages: 'gcc-powerpc64-linux-gnu g++-powerpc64-linux-gnu binutils-powerpc64-linux-gnu libc6-dev-ppc64-cross qemu-user-static',
               cross_file: 'cross_configs/linux_ppc64_ubuntu24.cmake',
             }
+          - {
+              name: 'QEMU Android (arm64_v8a) NDK 29',
+              os: ubuntu-24.04,
+              arch: x64,
+              build-system: 'cmake',
+              ndk_path: '$HOME/ndk/android-ndk-${ndk_version}/',
+              android_abi: 'arm64-v8a',
+              build_option: '-DANDROID_NDK=${ndk_path} -DANDROID_ABI=${android_abi}',
+              diet-build: 'OFF',
+              build_type: 'Debug',
+              diet_build: false,
+              ndk_version: 'r29',
+              cross_file: '${ndk_path}/build/cmake/android.toolchain.cmake',
+              qemu: 'qemu-aarch64-static'
+            }
 
     steps:
     - uses: actions/checkout@v4
@@ -79,10 +94,28 @@ jobs:
         python-version: ${{ matrix.config.python-version }}
 
     - name: Install cross build dependencies
+      if: ${{ matrix.config.packages != '' }}
       env:
         packages: ${{ matrix.config.packages }}
       run: |
         sudo apt-get install -y ${packages}
+
+    - name: Setup Android NDK
+      if: contains(matrix.config.name, 'Android')
+      env:
+        ndk_version: ${{ matrix.config.ndk_version }}
+        ndk_path: ${{ matrix.config.ndk_path }}
+        qemu: ${{ matrix.config.qemu }}
+        android_abi: ${{ matrix.config.android_abi }}
+        cross_file: ${{ matrix.config.cross_file }}
+      run: |
+        wget https://dl.google.com/android/repository/android-ndk-${ndk_version}-linux.zip
+        mkdir ${ndk_path}
+        unzip -d ${ndk_path} android-ndk-${ndk_version}-linux.zip
+        # Move the directory
+        mv ${ndk_path}/* ${ndk_path}
+        ls -l ${ndk_path}
+        echo "set(CMAKE_CROSSCOMPILING_EMULATOR '${qemu};-L;${ndk_path}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/')" >> ${cross_file}
 
     - name: cmake (cross build)
       env:
