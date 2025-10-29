@@ -58,6 +58,17 @@ jobs:
               packages: 'gcc-mips-linux-gnu g++-mips-linux-gnu binutils-mips-linux-gnu libc6-dev-mips-cross qemu-user-static',
               cross_file: 'cross_configs/linux_mips_ubuntu24.cmake',
             }
+          - {
+              name: 'QEMU Linux PPC64',
+              os: ubuntu-24.04,
+              arch: x64,
+              build-system: 'cmake',
+              diet-build: 'OFF',
+              build_type: 'Debug',
+              diet_build: false,
+              packages: 'gcc-powerpc64-linux-gnu g++-powerpc64-linux-gnu binutils-powerpc64-linux-gnu libc6-dev-ppc64-cross qemu-user-static',
+              cross_file: 'cross_configs/linux_ppc64_ubuntu24.cmake',
+            }
 
     steps:
     - uses: actions/checkout@v4
