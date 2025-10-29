@@ -7,10 +7,10 @@ set(CMAKE_SYSTEM_PROCESSOR ppc64)
 set(CMAKE_C_COMPILER   powerpc64-linux-gnu-gcc)
 set(CMAKE_CXX_COMPILER powerpc64-linux-gnu-g++)
 
-set(CMAKE_SYSROOT /usr/powerpc64-linux-gnu)
+set(CMAKE_SYSROOT /usr/powerpc64-linux-gnu/usr)
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
-set(CMAKE_CROSSCOMPILING_EMULATOR qemu-ppc64-static;-L;${CMAKE_SYSROOT})
+set(CMAKE_CROSSCOMPILING_EMULATOR qemu-ppc64-static;-L;/usr/powerpc64-linux-gnu)
