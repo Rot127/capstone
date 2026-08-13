@@ -19,26 +19,9 @@
 void MCInst_Init(MCInst *inst, cs_arch arch)
 {
 	memset(inst, 0, sizeof(MCInst));
-	// unnecessary to initialize in loop . its expensive and inst->size should be honored
-	inst->Operands[0].Kind = kInvalid;
-	inst->Operands[0].ImmVal = 0;
-
-	inst->Opcode = 0;
-	inst->OpcodePub = 0;
-	inst->size = 0;
-	inst->has_imm = false;
-	inst->op1_size = 0;
-	inst->ac_idx = 0;
-	inst->popcode_adjust = 0;
-	inst->assembly[0] = '\0';
-	inst->wasm_data.type = WASM_OP_INVALID;
-	inst->xAcquireRelease = 0;
-	for (int i = 0; i < MAX_MC_OPS; ++i)
+	for (int i = 0; i < MAX_MC_OPS; ++i) {
 		inst->tied_op_idx[i] = -1;
-	inst->isAliasInstr = false;
-	inst->fillDetailOps = false;
-	memset(&inst->hppa_ext, 0, sizeof(inst->hppa_ext));
-
+	}
 	// Set default assembly dialect.
 	switch (arch) {
 	default:
